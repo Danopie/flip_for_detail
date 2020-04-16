@@ -366,11 +366,13 @@ class ProductTitle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bottomMargin =
-        Tween<double>(begin: 35, end: 450).evaluate(positionAnimation) +
-            MediaQuery.of(context).padding.bottom;
+    final margin = Tween<double>(
+                begin: MediaQuery.of(context).size.height - 135,
+                end: 100 + MediaQuery.of(context).padding.top + 50)
+            .evaluate(positionAnimation) +
+        MediaQuery.of(context).padding.bottom;
     return Positioned(
-      bottom: bottomMargin,
+      top: margin,
       left: 35,
       child: Text(
         "Fender\nAmerican\nElite Strat",
