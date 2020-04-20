@@ -55,31 +55,22 @@ class _ProductDetailPageState extends State<ProductDetailPage>
       backgroundColor: Color(0xFF9E9583),
       body: GestureDetector(
         behavior: HitTestBehavior.translucent,
-        onVerticalDragUpdate: handlePanUpdate,
-        onVerticalDragEnd: (details) {
-          handlePanEnd(details, MediaQuery.of(context).size);
-        },
-        onVerticalDragDown: (details) {
-          if (controller.isAnimating) {
-            controller.stop();
-          }
-        },
+        onVerticalDragUpdate: handleDragUpdate,
+        onVerticalDragEnd: handleDragEnd,
+        onVerticalDragDown: handleDragStop,
         child: Builder(
           builder: (BuildContext context) {
-            final topInterval = Interval(0.0, 0.7);
-            final bottomInterval = Interval(0.5, 0.7);
-
             final mainAnimation = AlwaysStoppedAnimation(value);
 
             return Stack(
               children: [
                 ProductOverview(
                   rotateAnimation: CurvedAnimation(
-                      parent: mainAnimation, curve: topInterval),
+                      parent: mainAnimation, curve: Interval(0.0, 0.7)),
                 ),
                 ProductDescription(
                   rotateAnimation: CurvedAnimation(
-                      parent: mainAnimation, curve: bottomInterval),
+                      parent: mainAnimation, curve: Interval(0.5, 0.7)),
                   borderAnimation: CurvedAnimation(
                       parent: mainAnimation, curve: Interval(0.5, 0.7)),
                   textAnimation: CurvedAnimation(
@@ -87,7 +78,7 @@ class _ProductDetailPageState extends State<ProductDetailPage>
                     curve: Interval(0.5, 1.0),
                   ),
                   shadowAnimation: CurvedAnimation(
-                      parent: mainAnimation, curve: bottomInterval),
+                      parent: mainAnimation, curve: Interval(0.5, 0.7)),
                 ),
                 ProductTitle(
                     positionAnimation: CurvedAnimation(
@@ -102,11 +93,9 @@ class _ProductDetailPageState extends State<ProductDetailPage>
                       parent: mainAnimation, curve: Interval(0.4, 0.6)),
                 ),
                 PageTitle(
-                  controller: mainAnimation,
-                  onButtonPressed: () {
-                    if (value > 0.9) {
-                      toggleDescription(false);
-                    }
+                  animation: mainAnimation,
+                  onBackPressed: () {
+                    toggleDescription(false);
                   },
                 ),
               ],
@@ -117,8 +106,13 @@ class _ProductDetailPageState extends State<ProductDetailPage>
     );
   }
 
-  void handlePanUpdate(DragUpdateDetails details) {
-    print('_ProductDetailPageState.handlePanUpdate: ${details.delta.distance}');
+  void handleDragStop(details) {
+    if (controller.isAnimating) {
+      controller.stop();
+    }
+  }
+
+  void handleDragUpdate(DragUpdateDetails details) {
     final dy = details.delta.dy / 500;
     setState(() {
       if (value - dy > 1) {
@@ -131,7 +125,8 @@ class _ProductDetailPageState extends State<ProductDetailPage>
     });
   }
 
-  void handlePanEnd(DragEndDetails details, Size size) {
+  void handleDragEnd(DragEndDetails details) {
+    final size = MediaQuery.of(context).size;
     // Calculate the velocity relative to the unit interval, [0,1],
     // used by the animation controller.
     final pixelsPerSecond = details.velocity.pixelsPerSecond;
@@ -184,6 +179,7 @@ class _ProductDetailPageState extends State<ProductDetailPage>
       stiffness: 1,
       damping: 2,
     );
+
     final double velocity = 5;
 
     SpringSimulation simulation;
@@ -392,10 +388,10 @@ class ProductDescription extends StatelessWidget {
 }
 
 class PageTitle extends StatelessWidget {
-  final Animation<double> controller;
-  final Function onButtonPressed;
+  final Animation<double> animation;
+  final Function onBackPressed;
 
-  const PageTitle({Key key, this.controller, this.onButtonPressed})
+  const PageTitle({Key key, this.animation, this.onBackPressed})
       : super(key: key);
 
   @override
@@ -409,13 +405,15 @@ class PageTitle extends StatelessWidget {
           Expanded(
             child: GestureDetector(
               onTap: () {
-                onButtonPressed();
+                if (animation.value > 0.9) {
+                  onBackPressed();
+                }
               },
               child: AnimatedIcon(
                 size: 26,
                 color: Color(0xFF2C2C29),
                 icon: AnimatedIcons.menu_close,
-                progress: controller,
+                progress: animation,
               ),
             ),
           ),
