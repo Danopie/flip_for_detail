@@ -15,6 +15,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Flutter Demo',
+      debugShowCheckedModeBanner: false,
       theme: ThemeData(
           primarySwatch: Colors.blue,
           textTheme: GoogleFonts.latoTextTheme(Theme.of(context).textTheme)
@@ -68,36 +69,43 @@ class _ProductDetailPageState extends State<ProductDetailPage>
             final topInterval = Interval(0.0, 0.7);
             final bottomInterval = Interval(0.5, 0.7);
 
-            final _controller = AlwaysStoppedAnimation(value);
+            final mainAnimation = AlwaysStoppedAnimation(value);
 
             return Stack(
               children: [
                 ProductOverview(
-                  rotateAnimation:
-                      CurvedAnimation(parent: _controller, curve: topInterval),
+                  rotateAnimation: CurvedAnimation(
+                      parent: mainAnimation, curve: topInterval),
                 ),
                 ProductDescription(
                   rotateAnimation: CurvedAnimation(
-                      parent: _controller, curve: bottomInterval),
+                      parent: mainAnimation, curve: bottomInterval),
                   borderAnimation: CurvedAnimation(
-                      parent: _controller, curve: Interval(0.5, 0.7)),
+                      parent: mainAnimation, curve: Interval(0.5, 0.7)),
                   textAnimation: CurvedAnimation(
-                    parent: _controller,
+                    parent: mainAnimation,
                     curve: Interval(0.5, 1.0),
                   ),
                   shadowAnimation: CurvedAnimation(
-                      parent: _controller, curve: bottomInterval),
+                      parent: mainAnimation, curve: bottomInterval),
                 ),
                 ProductTitle(
                     positionAnimation: CurvedAnimation(
-                  parent: _controller,
+                  parent: mainAnimation,
                   curve: Interval(0.4, 1.0),
                 )),
+                ViewDescriptionButton(
+                  onPressed: () {
+                    toggleDescription(true);
+                  },
+                  animation: CurvedAnimation(
+                      parent: mainAnimation, curve: Interval(0.4, 0.6)),
+                ),
                 PageTitle(
-                  controller: _controller,
+                  controller: mainAnimation,
                   onButtonPressed: () {
                     if (value > 0.9) {
-                      controller.reverse(from: 1.0);
+                      toggleDescription(false);
                     }
                   },
                 ),
@@ -168,6 +176,71 @@ class _ProductDetailPageState extends State<ProductDetailPage>
     if (simulation != null) {
       controller.animateWith(simulation);
     }
+  }
+
+  void toggleDescription(bool open) {
+    const spring = SpringDescription(
+      mass: 10,
+      stiffness: 1,
+      damping: 2,
+    );
+    final double velocity = 5;
+
+    SpringSimulation simulation;
+    if (open) {
+      simulation = SpringSimulation(spring, 0, 1, velocity);
+    } else {
+      simulation = SpringSimulation(spring, 1, 0, velocity);
+    }
+
+    controller.animateWith(simulation);
+  }
+}
+
+class ViewDescriptionButton extends StatelessWidget {
+  final Animation<double> animation;
+  final Function onPressed;
+
+  const ViewDescriptionButton({Key key, this.animation, this.onPressed})
+      : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final margin = MediaQuery.of(context).size.height -
+        Tween<double>(begin: 82, end: 120).evaluate(animation) +
+        MediaQuery.of(context).padding.bottom;
+
+    return Positioned(
+      right: 23,
+      top: margin,
+      child: InkWell(
+        onTap: () {
+          if (animation.value < 0.1) {
+            onPressed();
+          }
+        },
+        child: FadeTransition(
+          opacity: ReverseAnimation(animation),
+          child: Container(
+            padding: EdgeInsets.all(12),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: <Widget>[
+                Text(
+                  "Spec",
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                ),
+                Icon(
+                  Icons.keyboard_arrow_down,
+                  size: 20,
+                )
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }
 
@@ -301,9 +374,12 @@ class ProductDescription extends StatelessWidget {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: <Widget>[
-                    Text(text),
+                    Text(
+                      text,
+                      style: TextStyle(fontSize: 14),
+                    ),
                     Container(
-                      height: 32,
+                      height: 18,
                     ),
                     Image.asset("image/playing_guit.jpg")
                   ],
