@@ -52,7 +52,7 @@ class _ProductDetailPageState extends State<ProductDetailPage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color(0xFF9E9583),
+      backgroundColor: Color(0xFF7bbbb7),
       body: GestureDetector(
         behavior: HitTestBehavior.translucent,
         onVerticalDragUpdate: handleDragUpdate,
@@ -259,7 +259,7 @@ class ProductOverview extends StatelessWidget {
         child: Stack(
           children: [
             Container(
-              color: Color(0xFFE1D7C3),
+              color: Color(0xFFb6d4d2),
             ),
             Align(
               alignment: Alignment(0, 0),
@@ -283,7 +283,7 @@ class ProductOverview extends StatelessWidget {
                   child: Text(
                     "FENDER",
                     style: TextStyle(
-                      color: Color(0xFFB9B4A3),
+                      color: Color(0xFFd4d4b6),
                       shadows: [
                         Shadow(
                             color: Colors.black38,
@@ -354,7 +354,7 @@ class ProductDescription extends StatelessWidget {
                                 .evaluate(shadowAnimation)),
                         width: Tween<double>(begin: 100, end: 8)
                             .evaluate(borderAnimation))),
-                color: Color(0xFFE1D7C3),
+                color: Color(0xFFb6d4d2),
               ),
               child: Container(
                   color:
